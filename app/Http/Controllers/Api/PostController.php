@@ -19,7 +19,7 @@ class PostController extends Controller
     {
         $posts = Post::latest()->paginate(5);
 
-        return new PostResource(true, 'Post List Data', $posts);
+        return new PostResource(true, 'Post list retrieved.', $posts);
     }
 
     /**
@@ -68,9 +68,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        //
+        return new PostResource(true, 'Post retrieved.', $post);
     }
 
     /**
