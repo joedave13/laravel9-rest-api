@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
@@ -91,9 +92,35 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Post $post)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'image' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required']
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageData = $image->hashName();
+            $image->storeAs('post', $imageData, 'public');
+
+            Storage::delete('public/post/' . $post->image);
+        } else {
+            $imageData = $post->image;
+        }
+
+        $post->update([
+            'image' => $imageData,
+            'title' => $request->title,
+            'content' => $request->content,
+        ]);
+
+        return new PostResource(true, 'Post updated successfully!', $post);
     }
 
     /**
